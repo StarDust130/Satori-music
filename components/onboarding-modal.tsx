@@ -13,12 +13,19 @@ type Props = {
     clientId: string;
   }) => void;
   clientId: string;
+  initialName?: string;
+  initialGender?: string;
 };
 
-export default function OnboardingModal({ onComplete, clientId }: Props) {
+export default function OnboardingModal({
+  onComplete,
+  clientId,
+  initialName,
+  initialGender,
+}: Props) {
   const t = useTranslations("onboarding");
-  const [name, setName] = useState("");
-  const [gender, setGender] = useState("");
+  const [name, setName] = useState(initialName || "");
+  const [gender, setGender] = useState(initialGender || "");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"form" | "loading">("form");
 

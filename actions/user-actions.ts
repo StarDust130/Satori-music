@@ -125,5 +125,6 @@ export async function getAllUsers() {
 
 // ─── Admin: Verify Password ────────────────────────────
 export async function verifyAdminPassword(password: string): Promise<boolean> {
-  return password === process.env.ADMIN_PASSWORD;
+  const adminPass = (process.env.ADMIN_PASSWORD || "").trim();
+  return password.trim() === adminPass;
 }

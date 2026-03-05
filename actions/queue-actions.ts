@@ -148,15 +148,26 @@ export async function getNextSong(): Promise<QueueItem | null> {
 export async function playNextSong(): Promise<QueueItem | null> {
   const sb = getServiceSupabase();
 
-  // Mark current as played
-  await sb
+  // Find currently playing
+  const { data: currentItems } = await sb
     .from("queue")
-    .update({
-      is_now_playing: false,
-      is_played: true,
-      played_at: new Date().toISOString(),
-    })
+    .select("id")
     .eq("is_now_playing", true);
+
+  if (currentItems && currentItems.length > 0) {
+    const currentId = currentItems[0].id;
+    // Delete old votes so score resets to 0
+    await sb.from("votes").delete().eq("queue_id", currentId);
+    // Put it back at the bottom of the queue
+    await sb
+      .from("queue")
+      .update({
+        is_now_playing: false,
+        is_played: false, // keep it in queue
+        created_at: new Date().toISOString(),
+      })
+      .eq("id", currentId);
+  }
 
   // Get next song
   const next = await getNextSong();
@@ -172,14 +183,26 @@ export async function playNextSong(): Promise<QueueItem | null> {
 export async function skipCurrentSong(): Promise<{ success: boolean }> {
   const sb = getServiceSupabase();
 
-  await sb
+  // Find currently playing
+  const { data: currentItems } = await sb
     .from("queue")
-    .update({
-      is_now_playing: false,
-      is_played: true,
-      played_at: new Date().toISOString(),
-    })
+    .select("id")
     .eq("is_now_playing", true);
+
+  if (currentItems && currentItems.length > 0) {
+    const currentId = currentItems[0].id;
+    // Delete old votes
+    await sb.from("votes").delete().eq("queue_id", currentId);
+    // Put it back at the bottom
+    await sb
+      .from("queue")
+      .update({
+        is_now_playing: false,
+        is_played: false,
+        created_at: new Date().toISOString(),
+      })
+      .eq("id", currentId);
+  }
 
   return { success: true };
 }
@@ -202,12 +225,14 @@ export async function deleteQueueEntry(
 export async function markSongComplete(queueId: string) {
   const sb = getServiceSupabase();
 
+  await sb.from("votes").delete().eq("queue_id", queueId);
+
   await sb
     .from("queue")
     .update({
       is_now_playing: false,
-      is_played: true,
-      played_at: new Date().toISOString(),
+      is_played: false,
+      created_at: new Date().toISOString(),
     })
     .eq("id", queueId);
 

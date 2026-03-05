@@ -60,10 +60,12 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#121212]">
-      {/* Onboarding */}
+      {/* Onboarding / Profile Edit */}
       {showOnboarding && (
         <OnboardingModal
           clientId={user?.clientId || generateClientId()}
+          initialName={user?.name}
+          initialGender={user?.gender}
           onComplete={handleOnboardingComplete}
         />
       )}
@@ -79,16 +81,18 @@ export default function Home() {
           </div>
 
           {user && (
-            <motion.div
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowOnboarding(true)}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 rounded-full cursor-pointer hover:bg-white/5 p-1 px-2 border border-transparent hover:border-white/10 transition-colors"
             >
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#282828] text-xs font-bold text-[#1DB954]">
                 {user.name[0]?.toUpperCase()}
               </div>
               <span className="text-xs text-zinc-400">{user.name}</span>
-            </motion.div>
+            </motion.button>
           )}
         </div>
       </header>

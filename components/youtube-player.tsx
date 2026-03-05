@@ -12,13 +12,17 @@ declare global {
 type Props = {
   videoId: string | null;
   onEnded: () => void;
+  onError?: () => void;
   autoplay?: boolean;
+  isPlaying?: boolean;
 };
 
 export default function YouTubePlayer({
   videoId,
   onEnded,
+  onError,
   autoplay = true,
+  isPlaying = true,
 }: Props) {
   const playerRef = useRef<YT.Player | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -52,11 +56,19 @@ export default function YouTubePlayer({
             onEnded();
           }
         },
+        onError: (event: YT.OnErrorEvent) => {
+          console.error("YouTube Player Error:", event.data);
+          if (onError) {
+            onError();
+          } else {
+            onEnded();
+          }
+        },
       },
     });
 
     currentVideoRef.current = videoId;
-  }, [videoId, onEnded, autoplay]);
+  }, [videoId, onEnded, onError, autoplay]);
 
   // Load YouTube IFrame API
   useEffect(() => {
@@ -89,6 +101,18 @@ export default function YouTubePlayer({
       initPlayer();
     }
   }, [videoId, initPlayer]);
+
+  // Handle play/pause via prop
+  useEffect(() => {
+    if (!playerRef.current || typeof playerRef.current.playVideo !== "function")
+      return;
+
+    if (isPlaying) {
+      playerRef.current.playVideo();
+    } else {
+      playerRef.current.pauseVideo();
+    }
+  }, [isPlaying]);
 
   return (
     <div
