@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Satori Music",
-  description: "A group music player to play music together with your friends.",
+  description: "A group music player to play music together with your friends. ",
 };
 
 export default function RootLayout({
